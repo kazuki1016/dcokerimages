@@ -1,0 +1,36 @@
+# 1. dockerでLaravelの開発環境を1コマンドで構築
+docker環境でのLaravel開発環境を整えるのに毎回同じような手順を実施するのが面倒になったので起動するだけで環境構築ができるようなシェルを作成した。
+
+## 1.1. 使用方法
+以下コマンドでdocker-compose.yml、dockerフォルダ、srcフォルダと同一フォルダ内で以下シェルを起動させればdocker環境が構築可能。
+
+```sh
+# 1から環境構築
+sh new_laravelbuild.sh
+# git cloneで環境構築
+sh gitclone_laravelbuild.sh
+```
+
+## 1.2. 詳細
+### 1.2.1. 変数設定
+ドキュメントルート、 Laravelのプロジェクト名、 Laravelのバージョンを指定。（ドキュメントルートは変更する必要なし）
+
+### 1.2.2. Dockerfileについて
+docker/app内のDockerfileを元にイメージをビルド。何か自分でインストールしたいミドルウェアがあれば「apt-get install -y」部分に追加する。（公式のphpイメージを使用している）<br>
+ADDコマンドでphp.iniとドキュメントルート設定のための.confファイルをコンテナに転送する。000-default.confファイルはindex.phpにアクセスされるようにドキュメントルートを設定する。なお、ファイル名を変えると既にコンテナに存在する000-default.confが上書きされず、ドキュメントルート意図したようにが反映されないので注意
+
+### 1.2.3. docker-compose.ymlファイル
+- appコンテナ
+srcファイルにコンテナ内の/var/www/html以下のフォルダを同期<br>
+- dbコンテナ
+環境変数に任意の値を入れ、Laravelの.envファイルにも転記する。mysqlのmy.cnfファイルを同期させているので何か他に設定したいものがあれば追記する<br>
+コンテナを削除した後もデータベース内のデータが消えないようにvolumeでdocker/db/dataに同期させて永続化している
+- phpmyadminコンテナ
+dbコンテナとリンクしてlocalhost:8080でphpMyAdminのログイン画面に入ることができる
+
+### new_laravelbuild.shファイル
+Laravelの初期設定を並べているだけ。どこかエラーになっても実行するのでエラーログをみたほうが良い。
+
+```sh
+sh new_laravelbuild.sh > buildresult.log 2>&1
+```
